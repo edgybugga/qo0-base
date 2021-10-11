@@ -93,6 +93,9 @@ bool H::Setup()
 	if (!DTR::RetrieveMessage.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::RETRIEVEMESSAGE), &hkRetrieveMessage))
 		return false;
 
+	if (!DTR::EmitSound.Create(MEM::GetVFunc(I::EngineSound, VTABLE::EMITSOUND), &hkEmitSound))
+		return false;
+
 	if (!DTR::LockCursor.Create(MEM::GetVFunc(I::Surface, VTABLE::LOCKCURSOR), &hkLockCursor))
 		return false;
 
@@ -128,6 +131,7 @@ void H::Restore()
 	DTR::RetrieveMessage.Remove();
 	DTR::LockCursor.Remove();
 	DTR::PlaySoundSurface.Remove();
+	DTR::EmitSound.Remove();
 	DTR::SvCheatsGetBool.Remove();
 
 	// @note: also should works but makes it undebuggable
@@ -207,6 +211,23 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 	return oEndScene(pDevice);
 }
 
+void retarded_lag_fix(CUserCmd* pCmd, CBaseEntity* pLocal)
+{// could someone please explain to me why this works? only needed this after riptide update ;_;
+	int nCommandsPredicted = I::Prediction->Split->nCommandsPredicted;
+	int backup_nigga = pCmd->iButtons;
+	for (int i = 0; i < 2; i++)
+	{
+		CPrediction::Get().RestoreEntityToPredictedFrame(nCommandsPredicted - 1);
+		if (!(pCmd->iButtons & IN_DUCK))
+			pCmd->iButtons |= IN_DUCK;
+		else
+			pCmd->iButtons &= ~IN_DUCK;
+		CPrediction::Get().Start(pCmd, pLocal);
+		CPrediction::Get().End(pCmd, pLocal);
+	}
+	pCmd->iButtons = backup_nigga;
+}
+
 bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInputSampleTime, CUserCmd* pCmd)
 {
 	static auto oCreateMove = DTR::CreateMove.GetOriginal<decltype(&hkCreateMove)>();
@@ -266,6 +287,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	if (I::ClientState->iDeltaTick > 0)
 		I::Prediction->Update(I::ClientState->iDeltaTick, I::ClientState->iDeltaTick > 0, I::ClientState->iLastCommandAck, I::ClientState->iLastOutgoingCommand + I::ClientState->nChokedCommands);
 
+	int nCommandsPredicted = I::Prediction->Split->nCommandsPredicted;
 	CPrediction::Get().Start(pCmd, pLocal);
 	{
 		if (C::Get<bool>(Vars.bMiscAutoPistol))
@@ -291,8 +313,17 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 
+	if (C::Get<bool>(Vars.bMiscJumpbug))
+		CMiscellaneous::Get().JumpBug(pLocal, pCmd);
+	if (C::Get<bool>(Vars.bMiscEdgebug))
+		CMiscellaneous::Get().EdgeBug(pLocal, pCmd, angOldViewPoint);
+
+	retarded_lag_fix(pCmd, pLocal);
+	CPrediction::Get().RestoreEntityToPredictedFrame(nCommandsPredicted);
 	if (pLocal->IsAlive())
-		CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
+		CMiscellaneous::Get().PastedMovementCorrection(pCmd, pCmd->angViewPoint, angOldViewPoint);
+	CPrediction::Get().Start(pCmd, pLocal);
+	CPrediction::Get().End(pCmd, pLocal);
 
 	// clamp & normalize view angles
 	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
@@ -759,6 +790,19 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 	}
 
 	return iStatus;
+}
+
+void FASTCALL H::hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample, float flVolume, float flAttenuation, int nSeed, int iFlags, int iPitch, const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, int flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters)
+{
+	static auto oEmitSound = DTR::EmitSound.GetOriginal<decltype(&hkEmitSound)>();
+
+	// @note: for sound esp use: "player/footsteps", "player/land", "clipout" sounds check
+
+	if (CPrediction::Get().bInPrediction)
+		if (nEntityIndex == G::pLocal->GetIndex())
+			return;
+
+	oEmitSound(thisptr, edx, filter, nEntityIndex, iChannel, szSoundEntry, uSoundEntryHash, szSample, flVolume, flAttenuation, nSeed, iFlags, iPitch, vecOrigin, vecDirection, pUtlVecOrigins, bUpdatePositions, flSoundTime, nSpeakerEntity, parameters);
 }
 
 bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)

@@ -129,6 +129,8 @@ private:
 	// Player
 	/* draw box, bars, text info's, etc for player */
 	void Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const float flDistance, const Color& colInfo, const Color& colFrame, const Color& colOutline);
+	/* draw a box to represent player's feet collider bounds */
+	void DrawFeetCollider(Vector vecOrigin, bool isdafootgreentho);
 
 	// Entities
 	/* draw entity bounding box */

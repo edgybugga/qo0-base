@@ -16,6 +16,10 @@
 #include "../utilities/math.h"
 // used: get weapon icon
 #include "../utilities.h"
+// used: edgebug shit
+#include "../features/misc.h"
+// used: hotkey shit
+#include "../utilities/inputsystem.h"
 
 // @note: avoid store imcolor, store either u32 of imvec4
 void CVisuals::Store()
@@ -37,6 +41,14 @@ void CVisuals::Store()
 		return;
 
 	const ImVec2 vecScreenSize = ImGui::GetIO().DisplaySize;
+
+	#pragma region misc_store
+	if(CMiscellaneous::Get().bShouldEdgebug && C::Get<bool>(Vars.bMiscEdgebugIndicator))
+		D::AddText(F::SmallestPixel, 14.f, ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), XorStr("EDGEBUG INC."), Color(255, 255, 0));
+	if (C::Get<bool>(Vars.bMiscEdgebugShowBox) && C::Get<bool>(Vars.bMiscEdgebug) && IPT::IsKeyDown(C::Get<int>(Vars.iMiscEdgebugKey)))
+		for (int i = 0; i < 4; i++)
+			DrawFeetCollider(CMiscellaneous::Get().wheredafeetat[i], CMiscellaneous::Get().greenfoot[i]);
+	#pragma endregion
 
 	#pragma region visuals_store_world
 	// render scope lines
@@ -1163,6 +1175,56 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 		ctx.arrPadding.at(DIR_RIGHT) += vecZoomSize.y;
 	}
 	#pragma endregion
+}
+
+void CVisuals::DrawFeetCollider(Vector vecOrigin, bool isdafootgreentho)
+{
+	// set mins/maxs
+	const Vector vecMin = Vector(-16.f, -16.f, 0.f);
+	const Vector vecMax = Vector(16.f, 16.f, 0.f);
+
+	/*
+	 * build AABB points
+	 *
+	 * points navigation:
+	 * [N] [back/front][left/right]
+	 *	0 - bl
+	 *	1 - br
+	 *	2 - fr
+	 *	3 - fl
+	 *
+	 *   0---1
+	 *  /     \
+	 * 3-------2
+	 *
+	 */
+	std::array<Vector, 4U> arrPoints =
+	{
+		Vector(vecMin.x, vecMin.y, vecMin.z),
+		Vector(vecMin.x, vecMax.y, vecMin.z),
+		Vector(vecMax.x, vecMax.y, vecMin.z),
+		Vector(vecMax.x, vecMin.y, vecMin.z)
+	};
+
+	if (arrPoints.data() == nullptr)
+		return;
+
+	ImVec2 a, b, c, d;
+	if (!D::WorldToScreen(arrPoints[0] + vecOrigin, a))
+		return;
+	if (!D::WorldToScreen(arrPoints[1] + vecOrigin, b))
+		return;
+	if (!D::WorldToScreen(arrPoints[2] + vecOrigin, c))
+		return;
+	if (!D::WorldToScreen(arrPoints[3] + vecOrigin, d))
+		return;
+
+	auto cooler = isdafootgreentho ? Color(0, 255, 0, 225) : Color(255, 255, 255, 200);
+
+	D::AddLine(a, b, cooler);
+	D::AddLine(b, c, cooler);
+	D::AddLine(c, d, cooler);
+	D::AddLine(d, a, cooler);
 }
 
 void CVisuals::Box(const Box_t& box, const int nBoxType, const Color& colPrimary, const Color& colOutline)

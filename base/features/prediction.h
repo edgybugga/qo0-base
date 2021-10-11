@@ -22,12 +22,16 @@ public:
 	// Get
 	void Start(CUserCmd* pCmd, CBaseEntity* pLocal);
 	void End(CUserCmd* pCmd, CBaseEntity* pLocal);
+	void RestoreEntityToPredictedFrame(int predicted_frame);
 
 	/*
 	 * required cuz prediction works on frames, not ticks
 	 * corrects tickbase if your framerate goes below tickrate and m_nTickBase won't update every tick
 	 */
 	int GetTickbase(CUserCmd* pCmd, CBaseEntity* pLocal);
+
+	// for the sound spam fix
+	bool bInPrediction;
 private:
 	// Values
 	/* prediction seed */

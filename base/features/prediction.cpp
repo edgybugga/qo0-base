@@ -13,6 +13,8 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (!pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
 
+	bInPrediction = true;
+
 	// start command
 	*pLocal->GetCurrentCommand() = pCmd;
 	pLocal->GetLastCommand() = *pCmd;
@@ -131,6 +133,19 @@ void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal)
 
 	// reset move
 	I::GameMovement->Reset();
+
+	bInPrediction = false;
+}
+
+void CPrediction::RestoreEntityToPredictedFrame(int predicted_frame)
+{
+	/* thanks to sreb from uc
+	* https://www.unknowncheats.me/forum/3208633-post13.html
+	*/
+
+	using RestoreEntityToPredictedFrameFn = void(__stdcall*)(int, int);
+	static auto fn = reinterpret_cast<RestoreEntityToPredictedFrameFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC A1 ? ? ? ? 56 8B 75 08 83")));
+	fn(0, predicted_frame);
 }
 
 int CPrediction::GetTickbase(CUserCmd* pCmd, CBaseEntity* pLocal)

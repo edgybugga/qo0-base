@@ -511,6 +511,17 @@ void T::Miscellaneous()
 			ImGui::Checkbox(XorStr("bunny hop"), &C::Get<bool>(Vars.bMiscBunnyHop));
 			ImGui::SliderInt(XorStr("chance"), &C::Get<int>(Vars.iMiscBunnyHopChance), 0, 100, "%d%%");
 			ImGui::Checkbox(XorStr("autostrafe"), &C::Get<bool>(Vars.bMiscAutoStrafe));
+			ImGui::Checkbox(XorStr("jumpbug"), &C::Get<bool>(Vars.bMiscJumpbug));
+			if (C::Get<bool>(Vars.bMiscJumpbug))
+				ImGui::HotKey(XorStr("jumpbug key"), &C::Get<int>(Vars.iMiscJumpbugKey));
+			ImGui::Checkbox(XorStr("edgebug"), &C::Get<bool>(Vars.bMiscEdgebug));
+			if (C::Get<bool>(Vars.bMiscEdgebug))
+			{
+				ImGui::HotKey(XorStr("edgebug key"), &C::Get<int>(Vars.iMiscEdgebugKey));
+				ImGui::SliderInt(XorStr("edgebug pred amount"), &C::Get<int>(Vars.iMiscEdgebugPredAmnt), 1, 128, "%d ticks");
+				ImGui::Checkbox(XorStr("edgebug indicator"), &C::Get<bool>(Vars.bMiscEdgebugIndicator));
+				ImGui::Checkbox(XorStr("edgebug pred box"), &C::Get<bool>(Vars.bMiscEdgebugShowBox));
+			}
 			ImGui::Separator();
 
 			ImGui::Checkbox(XorStr("fake lag"), &C::Get<bool>(Vars.bMiscFakeLag));

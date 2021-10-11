@@ -147,6 +147,18 @@ public:
 		return *this;
 	}
 
+	QAngle VectorNormalize()
+	{
+		const float flLength = std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);
+		const float flRadius = 1.0f / (flLength + std::numeric_limits<float>::epsilon());
+
+		this->x *= flRadius;
+		this->y *= flRadius;
+		this->z *= flRadius;
+
+		return *this;
+	}
+
 	QAngle Mod(const float flValue)
 	{
 		this->x = std::fmodf(this->x, flValue);

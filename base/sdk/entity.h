@@ -483,6 +483,7 @@ public:
 	N_ADD_VARIABLE(float, GetLowerBodyYaw, "CCSPlayer->m_flLowerBodyYawTarget");
 	N_ADD_VARIABLE(int, GetSurvivalTeam, "CCSPlayer->m_nSurvivalTeam");
 	N_ADD_VARIABLE_OFFSET(int, IsUsedNewAnimState, "CCSPlayer->m_flLastExoJumpTime", 0x8);
+	N_ADD_VARIABLE(float, HealthShotBoost, "CCSPlayer->m_flHealthShotBoostExpirationTime");
 	#pragma endregion
 
 	#pragma region DT_BaseEntity

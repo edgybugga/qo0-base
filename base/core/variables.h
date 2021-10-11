@@ -73,6 +73,7 @@ enum class EVisualsViewModelChams : int
 
 struct Variables_t
 {
+	C_ADD_VARIABLE(bool, bDebug, false);
 	#pragma region variables_rage
 	// aimbot
 	C_ADD_VARIABLE(bool, bRage, false);
@@ -212,6 +213,13 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bMiscBunnyHop, false);
 	C_ADD_VARIABLE(int, iMiscBunnyHopChance, 100);
 	C_ADD_VARIABLE(bool, bMiscAutoStrafe, false);
+	C_ADD_VARIABLE(bool, bMiscJumpbug, false);
+	C_ADD_VARIABLE(int, iMiscJumpbugKey, 0);
+	C_ADD_VARIABLE(bool, bMiscEdgebug, false);
+	C_ADD_VARIABLE(int, iMiscEdgebugKey, 0);
+	C_ADD_VARIABLE(bool, bMiscEdgebugIndicator, true);
+	C_ADD_VARIABLE(bool, bMiscEdgebugShowBox, true);
+	C_ADD_VARIABLE(int, iMiscEdgebugPredAmnt, 64);
 
 	C_ADD_VARIABLE(bool, bMiscFakeLag, false);
 	C_ADD_VARIABLE(bool, bMiscAutoAccept, false);
